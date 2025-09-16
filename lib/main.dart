@@ -16,12 +16,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: Constants.appTitle,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
       home: const BookSearchPage(),
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

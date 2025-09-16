@@ -41,19 +41,44 @@ class _BookSearchPageState extends State<BookSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(Constants.appTitle),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text(
+          Constants.appTitle,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 1,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            tooltip: Constants.favoritesTooltip,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SavedBooksPage()),
-              );
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: const Icon(Icons.favorite_border),
+              iconSize: 26,
+              color: Colors.black87,
+              tooltip: Constants.favoritesTooltip,
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SavedBooksPage(),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -85,15 +110,15 @@ class _BookSearchPageState extends State<BookSearchPage> {
                   child: BlocConsumer<BookSearchBloc, BookSearchState>(
                     listener: (context, state) {
                       if (state is BookSearchError) {
-                        // Debug logging for developers
-                        debugPrint('BookSearchError: ${state.errorMessage}');
-                        
-                        // User-friendly error display
+                        // shows the corresponding error message to the user
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Row(
                               children: [
-                                const Icon(Icons.error_outline, color: Colors.white),
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.white,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -115,7 +140,9 @@ class _BookSearchPageState extends State<BookSearchPage> {
                               onPressed: () {
                                 if (_searchController.text.trim().isNotEmpty) {
                                   context.read<BookSearchBloc>().add(
-                                    SearchBooksEvent(_searchController.text.trim()),
+                                    SearchBooksEvent(
+                                      _searchController.text.trim(),
+                                    ),
                                   );
                                 }
                               },
@@ -126,18 +153,45 @@ class _BookSearchPageState extends State<BookSearchPage> {
                     },
                     builder: (context, state) {
                       if (state is BookSearchInitial) {
-                        return const EmptyStateWidget(
-                          title: Constants.discoverBooksTitle,
-                          subtitle: Constants.discoverBooksSubtitle,
-                          icon: Icons.search,
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            context.read<BookSearchBloc>().add(
+                              const LoadPopularBooksEvent(),
+                            );
+                          },
+                          child: const SingleChildScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: 500,
+                              child: EmptyStateWidget(
+                                title: Constants.discoverBooksTitle,
+                                subtitle: Constants.discoverBooksSubtitle,
+                                icon: Icons.search,
+                              ),
+                            ),
+                          ),
                         );
                       } else if (state is BookSearchLoading) {
                         return const ShimmerLoading();
                       } else if (state is BookSearchEmpty) {
-                        return EmptyStateWidget(
-                          title: 'No books found for "${state.searchText}"',
-                          subtitle: Constants.noSearchResultsSubtitle,
-                          icon: Icons.book_outlined,
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            context.read<BookSearchBloc>().add(
+                              SearchBooksEvent(state.searchText),
+                            );
+                          },
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: 500,
+                              child: EmptyStateWidget(
+                                title:
+                                    'No books found for "${state.searchText}"',
+                                subtitle: Constants.noSearchResultsSubtitle,
+                                icon: Icons.book_outlined,
+                              ),
+                            ),
+                          ),
                         );
                       } else if (state is BookSearchLoaded ||
                           state is BookSearchLoadingMore) {
@@ -184,17 +238,41 @@ class _BookSearchPageState extends State<BookSearchPage> {
                           ),
                         );
                       } else if (state is BookSearchError) {
-                        return CustomErrorWidget(
-                          message: state.errorMessage,
-                          onRetry: _searchController.text.trim().isNotEmpty
-                              ? () {
-                                  context.read<BookSearchBloc>().add(
-                                    SearchBooksEvent(
-                                      _searchController.text.trim(),
-                                    ),
-                                  );
-                                }
-                              : null,
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            if (_searchController.text.trim().isNotEmpty) {
+                              context.read<BookSearchBloc>().add(
+                                SearchBooksEvent(_searchController.text.trim()),
+                              );
+                            } else {
+                              context.read<BookSearchBloc>().add(
+                                const LoadPopularBooksEvent(),
+                              );
+                            }
+                          },
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height - 200,
+                              child: CustomErrorWidget(
+                                message: state.errorMessage,
+                                onRetry:
+                                    _searchController.text.trim().isNotEmpty
+                                    ? () {
+                                        context.read<BookSearchBloc>().add(
+                                          SearchBooksEvent(
+                                            _searchController.text.trim(),
+                                          ),
+                                        );
+                                      }
+                                    : () {
+                                        context.read<BookSearchBloc>().add(
+                                          const LoadPopularBooksEvent(),
+                                        );
+                                      },
+                              ),
+                            ),
+                          ),
                         );
                       }
                       return Container();

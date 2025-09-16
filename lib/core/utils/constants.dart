@@ -32,8 +32,8 @@ class Constants {
   // Button Labels
   static const String retryButtonText = 'RETRY';
   static const String tryAgainButtonText = 'Try Again';
-  static const String saveButtonText = 'Save Book';
-  static const String savedButtonText = 'Saved';
+  static const String saveButtonText = 'Favorite';
+  static const String savedButtonText = 'Favorited';
   
   // Tooltips
   static const String favoritesTooltip = 'Favorites';
@@ -45,7 +45,7 @@ class Constants {
       'Search for your favorite books by title or author\n\nTry searching for "Harry Potter" or "Lord of the Rings"';
   static const String noFavoritesTitle = 'No Favorites Yet';
   static const String noFavoritesSubtitle =
-      'Start building your library by saving books you love!\n\nTap the bookmark icon on any book\'s details page to add it here.';
+      'Start building your library by favoriting books you love!\n\nTap the bookmark icon on any book\'s details page to add it here.';
   static const String noSearchResultsSubtitle =
       'Try searching with different keywords or check your spelling';
 

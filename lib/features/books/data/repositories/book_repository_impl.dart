@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/repositories/book_repository.dart';
@@ -20,19 +18,11 @@ class BookRepositoryImpl implements BookRepository {
 
   @override
   Future<List<Book>> searchBooks(String searchText, int pageNumber) async {
-    debugPrint(
-      'Repository: Starting search for "$searchText", page $pageNumber',
-    );
     try {
       final isConnected = await networkChecker.isConnected;
-      debugPrint('Network connected: $isConnected');
 
       if (isConnected) {
-        debugPrint('Making API call...');
         final response = await apiService.searchBooks(searchText, pageNumber);
-        debugPrint(
-          'API response received with ${response.docs.length} books',
-        );
 
         // Check which books are saved and update their status
         final bookList = <BookModel>[];
@@ -41,29 +31,36 @@ class BookRepositoryImpl implements BookRepository {
           bookList.add(bookData.copyWith(isSaved: isSaved));
         }
 
-        debugPrint('Repository returning ${bookList.length} books');
         return bookList;
       } else {
         // If no internet, return saved books that match the search
-        debugPrint('No internet connection, returning saved books');
         return await databaseService.getSavedBooks();
       }
     } catch (error) {
-      debugPrint('Repository error searching books: $error');
 
       // Provide user-friendly error messages
-      if (error.toString().contains('SocketException') ||
-          error.toString().contains('network') ||
-          error.toString().contains('timeout')) {
+      final errorString = error.toString().toLowerCase();
+
+      if (errorString.contains('socketexception') ||
+          errorString.contains('network') ||
+          errorString.contains('timeout') ||
+          errorString.contains('connection') ||
+          errorString.contains('handshake')) {
         throw Exception(
           'No internet connection. Please check your network and try again.',
         );
-      } else if (error.toString().contains('404')) {
+      } else if (errorString.contains('404')) {
         throw Exception('Books not found. Try a different search term.');
-      } else if (error.toString().contains('500')) {
+      } else if (errorString.contains('500') ||
+          errorString.contains('server')) {
         throw Exception('Server error. Please try again later.');
+      } else if (errorString.contains('formatexception') ||
+          errorString.contains('json')) {
+        throw Exception('Invalid response from server. Please try again.');
       } else {
-        throw Exception('Something went wrong. Please try again.');
+        throw Exception(
+          'Unable to load books. Please check your connection and try again.',
+        );
       }
     }
   }
@@ -75,8 +72,7 @@ class BookRepositoryImpl implements BookRepository {
         final response = await apiService.getBookDetails(bookId);
         final isSaved = await databaseService.isBookSaved(response.key);
 
-        // Debug: Print the authors structure from API
-        debugPrint('Authors from API: ${response.authors}');
+
         
         // The works API doesn't provide author names directly, only author keys
         // So we'll return empty authorName and let the BLoC preserve the original
@@ -95,7 +91,6 @@ class BookRepositoryImpl implements BookRepository {
         return null;
       }
     } catch (error) {
-      debugPrint('Error getting book details: $error');
       throw Exception('Failed to load book details. Please try again.');
     }
   }
@@ -103,12 +98,9 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<List<Book>> getSavedBooks() async {
     try {
-      debugPrint('Repository: Getting saved books...');
       final books = await databaseService.getSavedBooks();
-      debugPrint('Repository: Retrieved ${books.length} saved books');
       return books;
     } catch (error) {
-      debugPrint('Repository: Error getting saved books: $error');
       return [];
     }
   }
@@ -116,28 +108,13 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<bool> saveBook(Book book) async {
     try {
-      debugPrint('Repository: Attempting to save book with key: ${book.key}');
-      debugPrint('Repository: Book title: ${book.title}');
-      debugPrint('Repository: Book authors: ${book.authorName}');
-      
       final bookModel = BookModel.fromEntity(book);
-      debugPrint('Repository: BookModel created, saving to database...');
-
-      final savedBook = await databaseService.saveBook(bookModel);
-      debugPrint(
-        'Repository: Book saved successfully, returned book isSaved: ${savedBook.isSaved}',
-      );
-
-      // Double check that the book is now saved
+      await databaseService.saveBook(bookModel);
+      
+      // Verify that the book is now saved
       final isActuallySaved = await databaseService.isBookSaved(book.key);
-      debugPrint(
-        'Repository: Final verification - book is saved: $isActuallySaved',
-      );
-
       return isActuallySaved;
     } catch (error) {
-      debugPrint('Repository: Error saving book: $error');
-      debugPrint('Repository: Stack trace: ${StackTrace.current}');
       rethrow; // Let the original error bubble up
     }
   }
@@ -147,7 +124,6 @@ class BookRepositoryImpl implements BookRepository {
     try {
       return await databaseService.unsaveBook(bookId);
     } catch (error) {
-      debugPrint('Error removing book: $error');
       return false;
     }
   }
@@ -155,12 +131,9 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<bool> isBookSaved(String bookId) async {
     try {
-      debugPrint('Repository: Checking if book is saved with key: $bookId');
       final result = await databaseService.isBookSaved(bookId);
-      debugPrint('Repository: Book saved status: $result');
       return result;
     } catch (error) {
-      debugPrint('Error checking if book is saved: $error');
       return false;
     }
   }
@@ -168,16 +141,9 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<BookModel?> getSavedBookDetails(String bookId) async {
     try {
-      debugPrint('Repository: Getting saved book details for key: $bookId');
       final result = await databaseService.getSavedBook(bookId);
-      if (result != null) {
-        debugPrint('Repository: Found saved book details locally');
-      } else {
-        debugPrint('Repository: No saved book details found for key: $bookId');
-      }
       return result;
     } catch (error) {
-      debugPrint('Error getting saved book details: $error');
       return null;
     }
   }

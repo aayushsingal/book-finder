@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/book.dart';
@@ -23,10 +22,7 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
     SearchBooksEvent event,
     Emitter<BookSearchState> emit,
   ) async {
-    debugPrint('Search triggered for: "${event.searchText}"');
-
     if (event.searchText.trim().isEmpty) {
-      debugPrint('Search text is empty, returning to initial state');
       emit(BookSearchInitial());
       return;
     }
@@ -34,24 +30,16 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
     // Store the actual search term for pagination
     _currentActualSearchTerm = event.searchText;
     
-    debugPrint('Starting search loading state');
     emit(BookSearchLoading());
 
     try {
-      debugPrint('Calling search use case...');
       final bookList = await searchBooksUseCase(
         SearchParams(searchText: event.searchText, pageNumber: 1),
       );
 
-      debugPrint('Search returned ${bookList.length} books');
-
       if (bookList.isEmpty) {
-        debugPrint('No books found, emitting empty state');
         emit(BookSearchEmpty(searchText: event.searchText));
       } else {
-        debugPrint(
-          'Books found, emitting loaded state with ${bookList.length} items',
-        );
         emit(
           BookSearchLoaded(
             bookList: bookList,
@@ -62,8 +50,6 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
         );
       }
     } catch (error) {
-      debugPrint('Search error: $error');
-      
       // Extract user-friendly message from exception
       String errorMessage = 'Failed to search books';
       if (error is Exception) {
@@ -95,20 +81,14 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
     try {
       // Use the actual search term for pagination, not the display search text
       final searchTerm = _currentActualSearchTerm ?? currentState.searchText;
-      if (searchTerm.isEmpty) {
-        debugPrint('No search term available for loading more');
-        return;
-      }
+      if (searchTerm.isEmpty) return;
       
-      debugPrint('Loading more books for: "$searchTerm", page ${currentState.currentPage + 1}');
       final newBooks = await searchBooksUseCase(
         SearchParams(
           searchText: searchTerm,
           pageNumber: currentState.currentPage + 1,
         ),
       );
-
-      debugPrint('Load more returned ${newBooks.length} additional books');
       
       final allBooks = List<Book>.from(currentState.bookList)..addAll(newBooks);
       emit(
@@ -120,7 +100,6 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
         ),
       );
     } catch (error) {
-      debugPrint('Load more error: $error');
       
       // Don't emit error state for pagination failures, just revert to loaded state
       // This prevents the entire UI from showing an error when pagination fails
@@ -157,29 +136,30 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
     LoadPopularBooksEvent event,
     Emitter<BookSearchState> emit,
   ) async {
-    debugPrint('Loading popular books...');
     emit(BookSearchLoading());
 
     try {
       // Search for popular trending topics to show initially
-      final popularSearchTerms = ['fiction', 'mystery', 'romance', 'science'];
+      final popularSearchTerms = [
+        'fiction',
+        'mystery',
+        'romance',
+        'science',
+        'fantasy',
+        'biography',
+      ];
       final randomTerm = popularSearchTerms[(DateTime.now().millisecondsSinceEpoch % popularSearchTerms.length)];
       
       // Store the actual search term for pagination
       _currentActualSearchTerm = randomTerm;
       
-      debugPrint('Loading books for category: $randomTerm');
       final bookList = await searchBooksUseCase(
         SearchParams(searchText: randomTerm, pageNumber: 1),
       );
 
-      debugPrint('Popular books loaded: ${bookList.length} books');
-
       if (bookList.isEmpty) {
-        debugPrint('No popular books found');
-        emit(BookSearchEmpty(searchText: 'popular books'));
+        emit(BookSearchInitial());
       } else {
-        debugPrint('Emitting popular books loaded state');
         emit(
           BookSearchLoaded(
             bookList: bookList,
@@ -190,15 +170,10 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
         );
       }
     } catch (error) {
-      debugPrint('Popular books error: $error');
       
-      String errorMessage = 'Failed to load books';
-      if (error is Exception) {
-        final exceptionMessage = error.toString().replaceFirst('Exception: ', '');
-        errorMessage = exceptionMessage.isNotEmpty ? exceptionMessage : errorMessage;
-      }
-      
-      emit(BookSearchError(errorMessage: errorMessage));
+      // Instead of showing error on app startup, fall back to initial state
+      // This provides a better user experience
+      emit(BookSearchInitial());
     }
   }
 }

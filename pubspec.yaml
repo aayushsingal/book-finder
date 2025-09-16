@@ -52,15 +52,11 @@ dependencies:
   # Shimmer loading animation
   shimmer: ^3.0.0
   
-
-  
   # Get it for dependency injection
   get_it: ^7.6.4
   
   # Internet connectivity checker
   connectivity_plus: ^5.0.1
-  
-
 
 dev_dependencies:
   flutter_test:
@@ -72,8 +68,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  
-
   
   # Testing
   mockito: ^5.4.2

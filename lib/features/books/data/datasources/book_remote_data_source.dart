@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/error/exceptions.dart';
 import '../models/book_search_response.dart';
@@ -26,23 +25,22 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
         '$baseUrl/search.json?q=$query&page=$page&limit=$_booksPerPage',
       );
 
-      debugPrint('Making search API call to: $url');
-      final response = await http.get(url);
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception(
+              'Request timeout. Please check your internet connection.',
+            ),
+          );
 
       if (response.statusCode == 200) {
-        debugPrint('Search API response received');
         final data = json.decode(response.body);
-        // Check what keys we are getting from the response
-        final docs = data['docs'] as List?;
-        if (docs != null && docs.isNotEmpty) {
-          debugPrint('First book key: ${docs[0]['key']}');
-        }
         return BookSearchResponse.fromJson(data);
       } else {
         throw ServerException();
       }
     } catch (e) {
-      debugPrint('Error in searchBooks: $e');
       throw ServerException();
     }
   }
@@ -52,24 +50,22 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     try {
       final url = Uri.parse('$baseUrl/works/$workId.json');
       
-      debugPrint('Making book details API call to: $url');
-      debugPrint('Work ID: $workId');
-      
-      final response = await http.get(url);
-      
-      debugPrint('Book details status code: ${response.statusCode}');
-      debugPrint('Response body: ${response.body}');
+      final response = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw Exception(
+              'Request timeout. Please check your internet connection.',
+            ),
+          );
 
       if (response.statusCode == 200) {
-        debugPrint('Book details API response received');
         final data = json.decode(response.body);
         return BookDetailsResponse.fromJson(data);
       } else {
-        debugPrint('Book details API failed with status: ${response.statusCode}');
         throw ServerException();
       }
     } catch (e) {
-      debugPrint('Error getting book details: $e');
       throw ServerException();
     }
   }

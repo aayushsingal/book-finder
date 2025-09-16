@@ -37,16 +37,40 @@ class _SavedBooksPageState extends State<SavedBooksPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(Constants.favoritesTitle),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text(
+          Constants.favoritesTitle,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: Colors.black12,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black87, size: 24),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: Constants.refreshTooltip,
-            onPressed: () {
-              _bloc.add(const RefreshSavedBooksEvent());
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: const Icon(Icons.refresh),
+              iconSize: 26,
+              color: Colors.black87,
+              tooltip: Constants.refreshTooltip,
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                _bloc.add(const RefreshSavedBooksEvent());
+              },
+            ),
           ),
         ],
       ),
