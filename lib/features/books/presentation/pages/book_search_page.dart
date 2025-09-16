@@ -82,11 +82,13 @@ class _BookSearchPageState extends State<BookSearchPage> {
           ),
         ],
       ),
-      body: BlocProvider.value(
-        value: _bloc,
-        child: BlocBuilder<BookSearchBloc, BookSearchState>(
-          builder: (context, state) {
-            return Column(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: BlocProvider.value(
+          value: _bloc,
+          child: BlocBuilder<BookSearchBloc, BookSearchState>(
+            builder: (context, state) {
+              return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -281,6 +283,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
               ],
             );
           },
+        ),
         ),
       ),
     );

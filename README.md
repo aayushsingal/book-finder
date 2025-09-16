@@ -99,7 +99,7 @@ Run tests: `flutter test`
 
 ## Dependencies
 
-**Core**: flutter_bloc, get_it, dartz  
+**Core**: flutter_bloc, get_it  
 **Network**: http, connectivity_plus  
 **Database**: sqflite  
 **UI**: cached_network_image, shimmer  
