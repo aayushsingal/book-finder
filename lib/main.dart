@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/utils/constants.dart';
 import 'injection_container.dart' as di;
 import 'features/books/presentation/pages/book_search_page.dart';
 
@@ -14,15 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Book Finder',
+      title: Constants.appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const BookSearchPage(),
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
     );
   }
 }
-
-

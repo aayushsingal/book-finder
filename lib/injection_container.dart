@@ -8,6 +8,7 @@ import 'features/books/data/datasources/book_remote_data_source.dart';
 import 'features/books/data/repositories/book_repository_impl.dart';
 import 'features/books/domain/repositories/book_repository.dart';
 import 'features/books/domain/usecases/get_book_details.dart';
+import 'features/books/domain/usecases/get_saved_book_details.dart';
 import 'features/books/domain/usecases/get_saved_books.dart';
 import 'features/books/domain/usecases/save_book.dart';
 import 'features/books/domain/usecases/search_books.dart';
@@ -19,7 +20,6 @@ import 'features/books/presentation/bloc/saved_books/saved_books_bloc.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  //! Features - Books
   // Bloc
   sl.registerFactory(
     () => BookSearchBloc(searchBooksUseCase: sl()),
@@ -27,6 +27,7 @@ Future<void> init() async {
   sl.registerFactory(
     () => BookDetailsBloc(
       getBookDetails: sl(),
+      getSavedBookDetails: sl(),
       saveBook: sl(),
       removeBook: sl(),
     ),
@@ -38,6 +39,7 @@ Future<void> init() async {
   // Use cases
   sl.registerLazySingleton(() => SearchBooks(sl()));
   sl.registerLazySingleton(() => GetBookDetails(sl()));
+  sl.registerLazySingleton(() => GetSavedBookDetails(sl()));
   sl.registerLazySingleton(() => GetSavedBooks(sl()));
   sl.registerLazySingleton(() => SaveBook(sl()));
   sl.registerLazySingleton(() => RemoveBook(sl()));
@@ -60,10 +62,8 @@ Future<void> init() async {
     () => BookLocalDataSourceImpl(),
   );
 
-  //! Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 
-  //! External
   sl.registerLazySingleton(() => http.Client());
   sl.registerLazySingleton(() => Connectivity());
 }

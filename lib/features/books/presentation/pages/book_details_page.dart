@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/utils/constants.dart';
 import '../../../../injection_container.dart';
 import '../../domain/entities/book.dart';
 import '../bloc/book_details/book_details_bloc.dart';
@@ -58,7 +59,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Book Details'),
+        title: const Text(Constants.bookDetailsTitle),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: BlocProvider(
@@ -76,6 +77,11 @@ class _BookDetailsPageState extends State<BookDetailsPage>
             }
           },
           builder: (context, state) {
+            // Show loading screen during initial load
+            if (state is BookDetailsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
             Book currentBook = widget.book; // Default to original book
 
             if (state is BookDetailsLoaded) {
@@ -155,7 +161,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                                                 ),
                                                 SizedBox(height: 4),
                                                 Text(
-                                                  'No Cover',
+                                                        Constants.noCoverText,
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey,
@@ -177,7 +183,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                                           ),
                                           SizedBox(height: 4),
                                           Text(
-                                            'No Cover',
+                                                  Constants.noCoverText,
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
@@ -208,7 +214,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                         const SizedBox(height: 8),
                         if (currentBook.authorName.isNotEmpty)
                           Text(
-                            'by ${currentBook.authorName.join(', ')}',
+                                  '${Constants.authorPrefix}${currentBook.authorName.join(', ')}',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey[600],
@@ -217,7 +223,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                         const SizedBox(height: 8),
                         if (currentBook.firstPublishYear != null)
                           Text(
-                            'Published: ${currentBook.firstPublishYear}',
+                                  '${Constants.publishedLabel}${currentBook.firstPublishYear}',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[500],
@@ -257,7 +263,9 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                                         : Icons.bookmark_border,
                                   ),
                             label: Text(
-                              currentBook.isSaved ? 'Saved' : 'Save Book',
+                                    currentBook.isSaved
+                                        ? Constants.savedButtonText
+                                        : Constants.saveButtonText,
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: currentBook.isSaved
@@ -283,7 +291,7 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Description',
+                            Constants.descriptionLabel,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -309,30 +317,18 @@ class _BookDetailsPageState extends State<BookDetailsPage>
                     // Additional Info Section
                     const SizedBox(height: 24),
                     const Text(
-                      'Additional Information',
+                      Constants.additionalInfoLabel,
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
 
                     if (currentBook.isbn != null && currentBook.isbn!.isNotEmpty)
-                      _buildInfoRow('ISBN', currentBook.isbn!.first),
-
-                    _buildInfoRow('Work ID', currentBook.workId),
-
-                    // Loading indicator for enhanced details
-                    if (state is BookDetailsLoading)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 8),
-                              Text('Loading additional details...'),
-                            ],
-                          ),
-                        ),
+                      _buildInfoRow(
+                        Constants.isbnLabel,
+                        currentBook.isbn!.first,
                       ),
+
+                    _buildInfoRow(Constants.workIdLabel, currentBook.workId),
 
                     // Add some extra spacing at the bottom
                     const SizedBox(height: 100),

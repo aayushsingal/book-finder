@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/constants.dart';
 import '../../../../injection_container.dart';
 import '../bloc/book_search/book_search_bloc.dart';
 import '../widgets/book_grid_view.dart';
@@ -9,6 +10,7 @@ import '../widgets/error_widget.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/shimmer_loading.dart';
 import 'book_details_page.dart';
+import 'saved_books_page.dart';
 
 class BookSearchPage extends StatefulWidget {
   const BookSearchPage({super.key});
@@ -40,8 +42,20 @@ class _BookSearchPageState extends State<BookSearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Book Finder'),
+        title: const Text(Constants.appTitle),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border),
+            tooltip: Constants.favoritesTooltip,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SavedBooksPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: BlocProvider.value(
         value: _bloc,
@@ -57,6 +71,11 @@ class _BookSearchPageState extends State<BookSearchPage> {
                       if (query.trim().isNotEmpty) {
                         context.read<BookSearchBloc>().add(
                           SearchBooksEvent(query),
+                        );
+                      } else {
+                        // When search is cleared, load popular books
+                        context.read<BookSearchBloc>().add(
+                          const LoadPopularBooksEvent(),
                         );
                       }
                     },
@@ -78,7 +97,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Search failed: ${state.errorMessage}',
+                                    '${Constants.searchFailedPrefix}${state.errorMessage}',
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -91,7 +110,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             action: SnackBarAction(
-                              label: 'RETRY',
+                              label: Constants.retryButtonText,
                               textColor: Colors.white,
                               onPressed: () {
                                 if (_searchController.text.trim().isNotEmpty) {
@@ -108,9 +127,8 @@ class _BookSearchPageState extends State<BookSearchPage> {
                     builder: (context, state) {
                       if (state is BookSearchInitial) {
                         return const EmptyStateWidget(
-                          title: 'Discover Amazing Books',
-                          subtitle:
-                              'Search for your favorite books by title or author\n\nTry searching for "Harry Potter" or "Lord of the Rings"',
+                          title: Constants.discoverBooksTitle,
+                          subtitle: Constants.discoverBooksSubtitle,
                           icon: Icons.search,
                         );
                       } else if (state is BookSearchLoading) {
@@ -118,14 +136,8 @@ class _BookSearchPageState extends State<BookSearchPage> {
                       } else if (state is BookSearchEmpty) {
                         return EmptyStateWidget(
                           title: 'No books found for "${state.searchText}"',
-                          subtitle:
-                              'Try searching with different keywords or check your spelling',
+                          subtitle: Constants.noSearchResultsSubtitle,
                           icon: Icons.book_outlined,
-                          onAction: () {
-                            _searchController.clear();
-                            FocusScope.of(context).requestFocus(FocusNode());
-                          },
-                          actionText: 'Try Again',
                         );
                       } else if (state is BookSearchLoaded ||
                           state is BookSearchLoadingMore) {
@@ -141,14 +153,27 @@ class _BookSearchPageState extends State<BookSearchPage> {
                           },
                           child: BookGridView(
                             books: books,
-                            onBookTap: (book) {
-                              Navigator.push(
+                            onBookTap: (book) async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       BookDetailsPage(book: book),
                                 ),
                               );
+                              // Refresh search results when returning from details
+                              // to update save states
+                              if (context.mounted) {
+                                final currentState = context
+                                    .read<BookSearchBloc>()
+                                    .state;
+                                if (currentState is BookSearchLoaded &&
+                                    currentState.searchText.isNotEmpty) {
+                                  context.read<BookSearchBloc>().add(
+                                    SearchBooksEvent(currentState.searchText),
+                                  );
+                                }
+                              }
                             },
                             isLoadingMore: state is BookSearchLoadingMore,
                             onLoadMore: () {

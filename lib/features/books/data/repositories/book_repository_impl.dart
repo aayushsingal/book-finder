@@ -103,9 +103,12 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<List<Book>> getSavedBooks() async {
     try {
-      return await databaseService.getSavedBooks();
+      debugPrint('Repository: Getting saved books...');
+      final books = await databaseService.getSavedBooks();
+      debugPrint('Repository: Retrieved ${books.length} saved books');
+      return books;
     } catch (error) {
-      debugPrint('Error getting saved books: $error');
+      debugPrint('Repository: Error getting saved books: $error');
       return [];
     }
   }
@@ -113,12 +116,29 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<bool> saveBook(Book book) async {
     try {
+      debugPrint('Repository: Attempting to save book with key: ${book.key}');
+      debugPrint('Repository: Book title: ${book.title}');
+      debugPrint('Repository: Book authors: ${book.authorName}');
+      
       final bookModel = BookModel.fromEntity(book);
-      await databaseService.saveBook(bookModel);
-      return true;
+      debugPrint('Repository: BookModel created, saving to database...');
+
+      final savedBook = await databaseService.saveBook(bookModel);
+      debugPrint(
+        'Repository: Book saved successfully, returned book isSaved: ${savedBook.isSaved}',
+      );
+
+      // Double check that the book is now saved
+      final isActuallySaved = await databaseService.isBookSaved(book.key);
+      debugPrint(
+        'Repository: Final verification - book is saved: $isActuallySaved',
+      );
+
+      return isActuallySaved;
     } catch (error) {
-      debugPrint('Error saving book: $error');
-      throw Exception('Failed to save book. Please try again.');
+      debugPrint('Repository: Error saving book: $error');
+      debugPrint('Repository: Stack trace: ${StackTrace.current}');
+      rethrow; // Let the original error bubble up
     }
   }
 
@@ -135,10 +155,30 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<bool> isBookSaved(String bookId) async {
     try {
-      return await databaseService.isBookSaved(bookId);
+      debugPrint('Repository: Checking if book is saved with key: $bookId');
+      final result = await databaseService.isBookSaved(bookId);
+      debugPrint('Repository: Book saved status: $result');
+      return result;
     } catch (error) {
       debugPrint('Error checking if book is saved: $error');
       return false;
+    }
+  }
+
+  @override
+  Future<BookModel?> getSavedBookDetails(String bookId) async {
+    try {
+      debugPrint('Repository: Getting saved book details for key: $bookId');
+      final result = await databaseService.getSavedBook(bookId);
+      if (result != null) {
+        debugPrint('Repository: Found saved book details locally');
+      } else {
+        debugPrint('Repository: No saved book details found for key: $bookId');
+      }
+      return result;
+    } catch (error) {
+      debugPrint('Error getting saved book details: $error');
+      return null;
     }
   }
 }

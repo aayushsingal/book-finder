@@ -66,7 +66,7 @@ class _BookGridViewState extends State<BookGridView> {
         controller: _scrollController,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.7,
+          childAspectRatio: 0.65,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),

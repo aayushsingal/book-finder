@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/utils/constants.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final TextEditingController controller;
@@ -30,9 +31,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
     // Start new timer for debounced search
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (value.trim().isNotEmpty) {
-        widget.onSearch(value.trim());
-      }
+      widget.onSearch(value.trim());
     });
 
     // Update UI to show/hide clear button
@@ -57,7 +56,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       child: TextField(
         controller: widget.controller,
         decoration: InputDecoration(
-          hintText: 'Search for books... (e.g. "harry potter")',
+          hintText: Constants.searchHint,
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),

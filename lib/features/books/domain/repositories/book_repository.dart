@@ -8,4 +8,5 @@ abstract class BookRepository {
   Future<bool> saveBook(Book book);
   Future<bool> removeBook(String bookId);
   Future<bool> isBookSaved(String bookId);
+  Future<Book?> getSavedBookDetails(String bookId);
 }
