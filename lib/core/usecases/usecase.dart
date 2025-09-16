@@ -1,9 +1,8 @@
-// Simple base class for use cases
+// Base class for use cases following Clean Architecture
 abstract class BaseUseCase<Type, Params> {
   Future<Type> call(Params params);
 }
 
-// No parameters class
 class NoParams {
   const NoParams();
 }

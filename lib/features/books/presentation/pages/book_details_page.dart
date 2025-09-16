@@ -417,7 +417,6 @@ class _BookDetailsPageState extends State<BookDetailsPage>
 
                     _buildInfoRow(Constants.workIdLabel, currentBook.workId),
 
-                    // Add some extra spacing at the bottom
                     const SizedBox(height: 100),
                   ],
                 ),

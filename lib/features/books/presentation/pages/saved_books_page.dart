@@ -24,8 +24,7 @@ class _SavedBooksPageState extends State<SavedBooksPage> {
   void initState() {
     super.initState();
     _bloc = sl<SavedBooksBloc>();
-    // Load saved books when the page first loads
-    _bloc.add(const LoadSavedBooksEvent());
+    _bloc.add(const LoadSavedBooksEvent()); // Load favorites on page open
   }
 
   @override
@@ -79,10 +78,8 @@ class _SavedBooksPageState extends State<SavedBooksPage> {
         child: BlocConsumer<SavedBooksBloc, SavedBooksState>(
           listener: (context, state) {
             if (state is SavedBooksError) {
-              // Debug logging for developers
               debugPrint('SavedBooksError: ${state.errorMessage}');
               
-              // User-friendly error display
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
@@ -131,7 +128,6 @@ class _SavedBooksPageState extends State<SavedBooksPage> {
                 child: BookGridView(
                   books: state.savedBooks,
                   onBookTap: (book) async {
-                    // Navigate to book details and refresh when returning
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -139,13 +135,12 @@ class _SavedBooksPageState extends State<SavedBooksPage> {
                       ),
                     );
                     
-                    // Refresh the saved books list when returning from details
-                    // in case the save status changed
+                    // Refresh in case save status changed
                     if (result == null) {
                       _bloc.add(const RefreshSavedBooksEvent());
                     }
                   },
-                  isLoadingMore: false, // No pagination needed for saved books
+                  isLoadingMore: false, // No pagination for favorites
                 ),
               );
             } else if (state is SavedBooksError) {

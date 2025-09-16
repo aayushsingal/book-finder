@@ -8,7 +8,7 @@ part 'book_search_state.dart';
 
 class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
   final SearchBooks searchBooksUseCase;
-  String? _currentActualSearchTerm; // Track actual search term used
+  String? _currentActualSearchTerm; // For pagination consistency
 
   BookSearchBloc({required this.searchBooksUseCase})
     : super(BookSearchInitial()) {
@@ -27,7 +27,6 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
       return;
     }
 
-    // Store the actual search term for pagination
     _currentActualSearchTerm = event.searchText;
     
     emit(BookSearchLoading());
@@ -50,7 +49,7 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
         );
       }
     } catch (error) {
-      // Extract user-friendly message from exception
+      // Extract meaningful error message
       String errorMessage = 'Failed to search books';
       if (error is Exception) {
         final exceptionMessage = error.toString().replaceFirst('Exception: ', '');
@@ -79,7 +78,7 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
     );
 
     try {
-      // Use the actual search term for pagination, not the display search text
+      // Use stored search term for consistent pagination
       final searchTerm = _currentActualSearchTerm ?? currentState.searchText;
       if (searchTerm.isEmpty) return;
       
@@ -120,15 +119,16 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
   ) async {
     final currentState = state;
     if (currentState is BookSearchLoaded) {
-      // If searchText is empty, it means we're showing popular books
+      // If searchText is empty, showing popular books
       if (currentState.searchText.isEmpty) {
-        add(const LoadPopularBooksEvent());
+        add(const LoadPopularBooksEvent()); // Refresh popular books
       } else {
-        add(SearchBooksEvent(currentState.searchText));
+        add(
+          SearchBooksEvent(currentState.searchText),
+        ); // Re-search current term
       }
     } else {
-      // If we're in any other state, load popular books
-      add(const LoadPopularBooksEvent());
+      add(const LoadPopularBooksEvent()); // Default to popular books
     }
   }
 
@@ -150,7 +150,6 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
       ];
       final randomTerm = popularSearchTerms[(DateTime.now().millisecondsSinceEpoch % popularSearchTerms.length)];
       
-      // Store the actual search term for pagination
       _currentActualSearchTerm = randomTerm;
       
       final bookList = await searchBooksUseCase(
@@ -163,7 +162,7 @@ class BookSearchBloc extends Bloc<BookSearchEvent, BookSearchState> {
         emit(
           BookSearchLoaded(
             bookList: bookList,
-            searchText: '', // Empty search text indicates we're showing popular books
+            searchText: '', // Empty = showing popular books
             currentPage: 1,
             hasMoreBooks: bookList.length >= 20,
           ),

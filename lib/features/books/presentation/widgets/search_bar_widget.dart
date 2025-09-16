@@ -26,7 +26,6 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   }
 
   void _onSearchChanged(String value) {
-    // Cancel previous timer
     _debounceTimer?.cancel();
 
     // Start new timer for debounced search
@@ -34,8 +33,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       widget.onSearch(value.trim());
     });
 
-    // Update UI to show/hide clear button
-    setState(() {});
+    setState(() {}); // Update clear button visibility
   }
 
   @override

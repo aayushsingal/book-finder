@@ -90,7 +90,7 @@ class BookCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Compact text info section
+            // Book info
             Container(
               padding: const EdgeInsets.all(8.0),
               child: Column(

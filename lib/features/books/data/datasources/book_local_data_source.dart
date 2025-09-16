@@ -160,7 +160,7 @@ class BookLocalDataSourceImpl implements BookLocalDataSource {
   }
 
   Map<String, dynamic> _mapToBookJson(Map<String, dynamic> map) {
-    // Use stored cover_id if available, otherwise extract from cover URL
+    // Get cover ID from stored value or extract from URL
     int? coverId = map['cover_id'] as int?;
 
     if (coverId == null) {

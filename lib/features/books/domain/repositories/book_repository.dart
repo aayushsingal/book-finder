@@ -1,6 +1,6 @@
 import '../entities/book.dart';
 
-// Simple repository interface without complex error handling
+// Repository contract for book-related operations
 abstract class BookRepository {
   Future<List<Book>> searchBooks(String searchText, int pageNumber);
   Future<Book?> getBookDetails(String bookId);

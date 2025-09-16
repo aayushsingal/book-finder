@@ -35,7 +35,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     emit(BookDetailsLoading());
 
     try {
-      // First check if this book is saved locally with complete details
+      // Check for locally saved book with complete data
       final fullKey = '/works/${event.workId}';
       if (kDebugMode)
         debugPrint('BookDetails: Checking local data for ${event.workId}');
@@ -47,11 +47,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         if (kDebugMode)
           debugPrint('BookDetails: Using local data with description');
 
-        // Merge with original book data if needed to preserve any UI-specific fields
+        // Merge with original data to preserve UI fields
         Book finalBook = savedBook;
         if (event.originalBook != null) {
           finalBook = savedBook.copyWith(
-            // Preserve author name from original if it's more complete
+            // Keep better author names from search results
             authorName: event.originalBook!.authorName.isNotEmpty
                 ? event.originalBook!.authorName
                 : savedBook.authorName,
@@ -59,7 +59,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         }
 
         emit(BookDetailsLoaded(bookDetails: finalBook));
-        return; // Exit early, no need for API call
+        return;
       }
 
       // Book not saved locally or needs description update, fetch from API
@@ -67,7 +67,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
         debugPrint('BookDetails: Fetching from API for ${event.workId}');
       final fullBookDetails = await getBookDetails(event.workId);
       if (fullBookDetails != null) {
-        // Merge original book data (especially author names) with full details
+        // Merge with original data for complete info
         Book finalBook = fullBookDetails;
         
         if (event.originalBook != null) {
@@ -75,7 +75,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
             authorName: event.originalBook!.authorName.isNotEmpty 
                 ? event.originalBook!.authorName 
                 : fullBookDetails.authorName,
-            // Also preserve other fields if they're missing in full details data
+            // Preserve missing fields from original
             firstPublishYear:
                 fullBookDetails.firstPublishYear ??
                 event.originalBook!.firstPublishYear,
@@ -85,17 +85,17 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
           );
         }
         
-        // If this book was saved but missing description, update it with complete data
+        // Update saved book with complete data if needed
         if (savedBook != null) {
           if (kDebugMode)
             debugPrint('BookDetails: Updating saved book with description');
           finalBook = finalBook.copyWith(isSaved: true);
-          await saveBook(finalBook); // Update the saved book with description
+          await saveBook(finalBook); // Add missing description
         }
         
         emit(BookDetailsLoaded(bookDetails: finalBook));
       } else {
-        // If full details fetch fails but we have original book, keep showing it
+        // Fallback to original book if API fails
         if (event.originalBook != null) {
           emit(BookDetailsLoaded(bookDetails: event.originalBook!));
         } else {
@@ -104,7 +104,7 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       }
     } catch (error) {
       if (kDebugMode) debugPrint('BookDetails: Error - $error');
-      // If there's an error but we have original book data, show it
+      // Show original data on error if available
       if (event.originalBook != null) {
         emit(BookDetailsLoaded(bookDetails: event.originalBook!));
       } else {

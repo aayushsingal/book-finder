@@ -215,8 +215,7 @@ class _BookSearchPageState extends State<BookSearchPage> {
                                       BookDetailsPage(book: book),
                                 ),
                               );
-                              // Refresh search results when returning from details
-                              // to update save states
+                              // Refresh to update save states
                               if (context.mounted) {
                                 final currentState = context
                                     .read<BookSearchBloc>()

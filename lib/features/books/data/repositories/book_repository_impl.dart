@@ -24,7 +24,7 @@ class BookRepositoryImpl implements BookRepository {
       if (isConnected) {
         final response = await apiService.searchBooks(searchText, pageNumber);
 
-        // Check which books are saved and update their status
+        // Update save status for each book
         final bookList = <BookModel>[];
         for (final bookData in response.docs) {
           final isSaved = await databaseService.isBookSaved(bookData.key);
@@ -33,7 +33,7 @@ class BookRepositoryImpl implements BookRepository {
 
         return bookList;
       } else {
-        // If no internet, return saved books that match the search
+        // Offline fallback
         return await databaseService.getSavedBooks();
       }
     } catch (error) {
@@ -72,15 +72,11 @@ class BookRepositoryImpl implements BookRepository {
         final response = await apiService.getBookDetails(bookId);
         final isSaved = await databaseService.isBookSaved(response.key);
 
-
-        
-        // The works API doesn't provide author names directly, only author keys
-        // So we'll return empty authorName and let the BLoC preserve the original
-        // author names from the search result when navigating to details
+        // Works API returns author keys, not names - merge in BLoC
         return BookModel(
           key: response.key,
           title: response.title ?? 'Unknown Title',
-          authorName: [], // Leave empty, will be merged with original book data
+          authorName: [], // Will be merged with search result data
           coverId: response.covers?.isNotEmpty == true
               ? response.covers!.first
               : null,
@@ -115,7 +111,7 @@ class BookRepositoryImpl implements BookRepository {
       final isActuallySaved = await databaseService.isBookSaved(book.key);
       return isActuallySaved;
     } catch (error) {
-      rethrow; // Let the original error bubble up
+      rethrow; // Preserve original error context
     }
   }
 

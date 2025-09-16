@@ -41,14 +41,14 @@ class _BookGridViewState extends State<BookGridView> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      // Load more when 200 pixels from bottom
+      // Trigger pagination near bottom
       if (widget.onLoadMore != null && 
           !widget.isLoadingMore && 
           !_isLoadingMore) {
         _isLoadingMore = true;
         widget.onLoadMore!();
         
-        // Reset the flag after a delay to prevent rapid consecutive calls
+        // Prevent rapid consecutive calls
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
             _isLoadingMore = false;
@@ -79,7 +79,7 @@ class _BookGridViewState extends State<BookGridView> {
               onTap: () => widget.onBookTap(book),
             );
           } else {
-            // Show shimmer cards for loading more items
+            // Loading placeholder
             return const ShimmerBookCard();
           }
         },
