@@ -37,15 +37,17 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
     try {
       // Check for locally saved book with complete data
       final fullKey = '/works/${event.workId}';
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('BookDetails: Checking local data for ${event.workId}');
-      
+      }
+
       final savedBook = await getSavedBookDetails(fullKey);
 
       if (savedBook != null && savedBook.description?.isNotEmpty == true) {
         // Found saved book with complete details, use it directly
-        if (kDebugMode)
+        if (kDebugMode) {
           debugPrint('BookDetails: Using local data with description');
+        }
 
         // Merge with original data to preserve UI fields
         Book finalBook = savedBook;
@@ -63,36 +65,38 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       }
 
       // Book not saved locally or needs description update, fetch from API
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('BookDetails: Fetching from API for ${event.workId}');
+      }
       final fullBookDetails = await getBookDetails(event.workId);
       if (fullBookDetails != null) {
         // Merge with original data for complete info
         Book finalBook = fullBookDetails;
-        
+
         if (event.originalBook != null) {
           finalBook = fullBookDetails.copyWith(
-            authorName: event.originalBook!.authorName.isNotEmpty 
-                ? event.originalBook!.authorName 
+            authorName: event.originalBook!.authorName.isNotEmpty
+                ? event.originalBook!.authorName
                 : fullBookDetails.authorName,
             // Preserve missing fields from original
             firstPublishYear:
                 fullBookDetails.firstPublishYear ??
                 event.originalBook!.firstPublishYear,
             isbn: fullBookDetails.isbn?.isNotEmpty == true
-                ? fullBookDetails.isbn 
+                ? fullBookDetails.isbn
                 : event.originalBook!.isbn,
           );
         }
-        
+
         // Update saved book with complete data if needed
         if (savedBook != null) {
-          if (kDebugMode)
+          if (kDebugMode) {
             debugPrint('BookDetails: Updating saved book with description');
+          }
           finalBook = finalBook.copyWith(isSaved: true);
           await saveBook(finalBook); // Add missing description
         }
-        
+
         emit(BookDetailsLoaded(bookDetails: finalBook));
       } else {
         // Fallback to original book if API fails
@@ -125,9 +129,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       try {
         final success = await saveBook(currentState.bookDetails);
         if (success) {
-          emit(BookDetailsLoaded(
-            bookDetails: currentState.bookDetails.copyWith(isSaved: true),
-          ));
+          emit(
+            BookDetailsLoaded(
+              bookDetails: currentState.bookDetails.copyWith(isSaved: true),
+            ),
+          );
         } else {
           emit(BookDetailsError(errorMessage: 'Failed to save book'));
         }
@@ -149,9 +155,11 @@ class BookDetailsBloc extends Bloc<BookDetailsEvent, BookDetailsState> {
       try {
         final success = await removeBook(event.bookKey);
         if (success) {
-          emit(BookDetailsLoaded(
-            bookDetails: currentState.bookDetails.copyWith(isSaved: false),
-          ));
+          emit(
+            BookDetailsLoaded(
+              bookDetails: currentState.bookDetails.copyWith(isSaved: false),
+            ),
+          );
         } else {
           emit(BookDetailsError(errorMessage: 'Failed to remove book'));
         }

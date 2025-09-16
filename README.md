@@ -68,12 +68,16 @@ SQLite database stores favorite books with:
 Simple user journey through the app:
 
 ```
-Search Page ──────┐
-    │             │
-    ▼             ▼
-Book Details ◄── Favorites Page
-    │             ▲
-    └─────────────┘
+    Search/Home Page
+    ┌─────────────────┐
+    │                 │
+    ▼                 ▼
+Book Details    Favorites Page
+    │                 │
+    │                 │
+    └─────────┬───────┘
+              ▼
+    Search/Home Page
 ```
 
 **How to use:**
@@ -82,6 +86,7 @@ Book Details ◄── Favorites Page
 3. **Tap "Favorite"** to save books locally
 4. **Access favorites** via the heart icon in top-right
 5. **View saved books** anytime, even offline
+6. **Return to search** from both details and favorites pages
 
 ## Testing
 
